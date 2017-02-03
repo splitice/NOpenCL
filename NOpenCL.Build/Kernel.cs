@@ -219,7 +219,10 @@ namespace NOpenCL.Build
                     ns.Types.Add(kernel);
                     ns.Imports.Add(new CodeNamespaceImport("System.IO"));
                     ns.Imports.Add(new CodeNamespaceImport("NOpenCL"));
+                    ns.Imports.Add(new CodeNamespaceImport("NOpenCL.Types")); 
                     ns.Imports.Add(new CodeNamespaceImport("NOpenCL.Extensions"));
+                    ns.Imports.Add(new CodeNamespaceImport("UIntPtr = System.UIntPtr"));
+                    ns.Imports.Add(new CodeNamespaceImport("IntPtr = System.IntPtr"));
 
                     kernel.Attributes = MemberAttributes.Public | MemberAttributes.Final;
                     kernel.BaseTypes.Add(typeof(KernelWrapperBase));
@@ -377,7 +380,7 @@ namespace NOpenCL.Build
                                 : int.Parse(match.Groups[VectorWidth].Captures[i].Value);
                         }
                         var qualifier = match.Groups[Qualifier].Captures[i].Value.Trim();
-                        var local = false;
+                        var needs_len = false;
 
                         CodeParameterDeclarationExpression parameter = null;
                         switch (qualifier)
@@ -386,13 +389,13 @@ namespace NOpenCL.Build
                                 parameter = new CodeParameterDeclarationExpression(string.Format("NOpenCL.Buffer", TranslateType(rawDatatype, vectorWidth)), name);
                                 break;
                             case "local":
-                                local = true;
                                 name = name + "_length";
                                 parameter = new CodeParameterDeclarationExpression(typeof(int), name);
                                 break;
                             case "read_only":
                             case "write_only":
                             case "":
+                                needs_len = true;
                                 parameter = new CodeParameterDeclarationExpression(TranslateType(rawDatatype, vectorWidth), name);
                                 break;
                         }
@@ -411,9 +414,20 @@ namespace NOpenCL.Build
                             callPrivateExecute3D.Parameters.Add(new CodeArgumentReferenceExpression(name));
                         }
 
-                        var setArgument = new CodeMethodInvokeExpression(
+                        CodeMethodInvokeExpression setArgument;
+                        if (needs_len)
+                        {
+                            setArgument = new CodeMethodInvokeExpression(
+                                new CodeSnippetExpression("this.Kernel.Arguments[" + i.ToString() + "]"), "SetValue",
+                                new CodeArgumentReferenceExpression("new UIntPtr((uint)System.Runtime.InteropServices.Marshal.SizeOf("+name+ "))"),
+                                new CodeArgumentReferenceExpression("new IntPtr(&" + name + ")"));
+                        }
+                        else
+                        {
+                            setArgument = new CodeMethodInvokeExpression(
                                 new CodeSnippetExpression("this.Kernel.Arguments[" + i.ToString() + "]"), "SetValue",
                                 new CodeArgumentReferenceExpression(name));
+                        }
                         executePrivateMethod.Statements.Add(setArgument);
                     }
 
@@ -496,7 +510,7 @@ namespace NOpenCL.Build
                 }
             }
 
-            return GenerateCSharpCode(codeUnit);
+            return GenerateCSharpCode(codeUnit).Replace("private NOpenCL.Event run(", "private unsafe NOpenCL.Event run(");
         }
     }
 }

@@ -58,6 +58,11 @@
     <Compile Include="BufferRegion.cs" />
     <Compile Include="EventStatusEventArgs.cs" />
     <Compile Include="KernelWrapperBase.cs" />
+    <Compile Include="Types\VectorTypes.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>VectorTypes.tt</DependentUpon>
+    </Compile>
     <Compile Include="UnsafeNativeMethods.Cleanup.cs" />
     <Compile Include="UnsafeNativeMethods.KernelExecution.cs" />
     <Compile Include="UnsafeNativeMethods.Profiling.cs" />
@@ -137,6 +142,16 @@
     <Analyzer Include="..\packages\StyleCop.Analyzers.1.0.0-rc2\analyzers\dotnet\cs\Newtonsoft.Json.dll" />
     <Analyzer Include="..\packages\StyleCop.Analyzers.1.0.0-rc2\analyzers\dotnet\cs\StyleCop.Analyzers.CodeFixes.dll" />
     <Analyzer Include="..\packages\StyleCop.Analyzers.1.0.0-rc2\analyzers\dotnet\cs\StyleCop.Analyzers.dll" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Types\VectorTypes.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>VectorTypes.cs</LastGenOutput>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
