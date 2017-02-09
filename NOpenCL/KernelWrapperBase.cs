@@ -62,8 +62,25 @@ namespace NOpenCL
         internal void Compile(string source, string kernelName)
         {
             var program = _context.CreateProgramWithSource(source);
-            program.Build();
-            _kernel = program.CreateKernel(kernelName);
+        }
+
+
+        internal void CompileDebug(string source, string kernelName, Device device)
+        {
+            var program = _context.CreateProgramWithSource(source);
+            try
+            {
+                program.Build(new Device[] { device });
+                if (program.GetBuildStatus(device) == BuildStatus.Error)
+                {
+                    throw new Exception("Error building: " + program.GetBuildLog(device));
+                }
+                _kernel = program.CreateKernel(kernelName);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Exception occured when building kernel. Error: " + program.GetBuildLog(device),ex);
+            }
         }
 
         protected internal abstract string KernelPath { get; }
